@@ -1,17 +1,13 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "index.js",
-      "use": "@vercel/node"
-    }
+    { "src": "index.js", "use": "@vercel/node" },
+    { "src": "netlifylogin.js", "use": "@vercel/node" }
   ],
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "index.js"}
-      {"src": "/(.*)",
-      "dest": "netlifylogin.js"
-    }
+    { "src": "/submit", "dest": "index.js" },
+    { "src": "/pass", "dest": "index.js" },
+    { "src": "/netlifylogin", "dest": "netlifylogin.js" },
+    { "src": "/", "dest": "index.js" }
   ]
 }
